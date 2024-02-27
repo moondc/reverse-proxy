@@ -1,3 +1,4 @@
 /node_modules
 /nginx-logs
 nginx.conf
+entrypoint.sh

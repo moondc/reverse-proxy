@@ -7,7 +7,7 @@ DOCKER_TAG="reverse-proxy"
 
 # Build docker image
 echo "Building target for arm64"
-docker buildx build --platform linux/arm64 -t $DOCKER_TAG .
+docker buildx build --platform linux/arm64 -t $DOCKER_TAG . --load
 echo "Build finished"
 
 # # Stop old containers
