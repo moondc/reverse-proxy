@@ -1,13 +1,22 @@
 #!/bin/bash
+
 #Exit immediately on error
 set -e
+
+source .env
+
+SUBSTITUTION_VALUES='${DOMAIN}${EMAIL_FOR_SSL}'
+envsubst "$SUBSTITUTION_VALUES" < nginx_ssl.conf.template > nginx_ssl.conf
+envsubst "$SUBSTITUTION_VALUES" < nginx.conf.template > nginx.conf
 
 # Set script vars
 DOCKER_TAG="reverse-proxy"
 
 # Build docker image
 echo "Building target for arm64"
+docker buildx use mybuilder
 docker buildx build --platform linux/arm64 -t $DOCKER_TAG . --load
+
 echo "Build finished"
 
 # # Stop old containers
@@ -35,5 +44,8 @@ echo "Done pushing"
 
 # Start container with auto restart
 echo "Starting Container"
-STARTED_CONTAINER=$(ssh "$PI_USER@$PI_IP" "docker run -d --network host -v $(pwd)/nginx-logs:/var/log/nginx --restart unless-stopped \"$DOCKER_TAG\"")
+STARTED_CONTAINER=$(ssh "$PI_USER@$PI_IP" "docker run -d --network host -v /var/log/letsencrypt:/var/log/letsencrypt -v /etc/letsencrypt:/etc/letencrypt -v $(pwd)/nginx-logs:/var/log/nginx --restart unless-stopped \"$DOCKER_TAG\"")
 echo "Started container:$STARTED_CONTAINER"
+
+# Restore builder
+docker buildx use default

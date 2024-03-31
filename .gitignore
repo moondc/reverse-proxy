@@ -1,4 +1,5 @@
 /node_modules
 /nginx-logs
 nginx.conf
-entrypoint.sh
+nginx_ssl.conf
+.env
