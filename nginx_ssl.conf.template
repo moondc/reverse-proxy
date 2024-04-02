@@ -18,6 +18,15 @@ http {
     access_log /var/log/nginx/access.log custom_format;
     error_log /var/log/nginx/error.log;
 
+
+    # Dummy config to block direct ip access
+    server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        server_name _;
+        return 403; # Forbidden
+    }
+
     server {
         listen 80;
         server_name ${DOMAIN}.com; # Adjust with your domain name
@@ -28,6 +37,18 @@ http {
             autoindex off;  # Enable directory listing
             try_files $uri $uri/ =404;
         }
+    }
+
+    # Dummy config to block direct ip access
+    server {
+        listen 443 ssl default_server;
+        listen [::]:443 ssl default_server;
+        server_name _;
+
+        ssl_certificate /etc/letsencrypt/live/${DOMAIN}.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}.com/privkey.pem;
+
+        return 403; # Forbidden
     }
 
     server {
