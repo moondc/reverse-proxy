@@ -25,14 +25,20 @@ ssh "$PI_USER@$PI_IP" "docker stop $DOCKER_TAG " || true
 echo "Removing old container"
 ssh "$PI_USER@$PI_IP" "docker container rm $DOCKER_TAG " || true
 
-# echo "Removing old image"
-# ssh "$PI_USER@$PI_IP" "docker image rm $DOCKER_TAG " || true
+echo "Grabbing current image id"
+OLD_IMAGE=$(ssh "$PI_USER@$PI_IP" "docker images --filter=reference='$DOCKER_TAG' --format '{{.ID}}'")
+echo $OLD_IMAGE
 
 echo "Pushing new image"
 docker save $DOCKER_TAG | bzip2 | ssh -l $PI_USER $PI_IP docker load
 
 echo "Starting Container"
 ssh "$PI_USER@$PI_IP" "docker run -d --network host -v /var/log/letsencrypt:/var/log/letsencrypt -v /etc/letsencrypt:/etc/letencrypt -v $(pwd)/nginx-logs:/var/log/nginx --restart unless-stopped --name $DOCKER_TAG \"$DOCKER_TAG\""
+
+if [ -n "$OLD_IMAGE" ]; then
+  echo "Removing old image"
+  ssh "$PI_USER@$PI_IP" "docker image rm $OLD_IMAGE " || true
+fi
 
 # Restore builder
 docker buildx use default
