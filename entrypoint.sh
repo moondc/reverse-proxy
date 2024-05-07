@@ -8,7 +8,7 @@ FULL_DOMAIN="/var/www/$DOMAIN"
 chmod -R 755 /var/log/nginx
 
 mkdir -p $FULL_DOMAIN
-mkdir -p /etc/letsencrypt
+mkdir -p /etc/letsencrypt/$DOMAIN.com
 mkdir -p /var/log/letsencrypt
 
 echo "Starting nginx in background"
@@ -25,14 +25,12 @@ until service nginx status 2>&1 | grep -qv "not running"; do
         exit 1
     fi
 done
-
 echo "Nginx started."
-echo "Fetching SSL cert"
 
-certbot certonly --webroot -w $FULL_DOMAIN -d $DOMAIN.com -d www.$DOMAIN.com --agree-tos --email $EMAIL_FOR_SSL --non-interactive
+echo "Fetching SSL cert"
+certbot certonly --webroot -w $FULL_DOMAIN -d $DOMAIN.com -d www.$DOMAIN.com --agree-tos --email $EMAIL_FOR_SSL --non-interactive --keep-until-expiring
 
 echo "Stopping nginx for SSL configuration"
-
 service nginx stop
 
 attempt=0
